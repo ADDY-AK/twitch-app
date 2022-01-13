@@ -3,6 +3,7 @@ import { useState } from "react";
 
 const Auth = () => {
 
+const [isLogin, setIsLogin] = useState(true);    
 const [username, setUsername] = useState(null);
 const [password, setPassword] = useState(null);
 const [confirmPassword, setConfirmPassword] = useState(null);
@@ -36,17 +37,27 @@ const handleSubmit = () => {
                 placeholder="password"
                 onChange={(e) =>setPassword(e.target.value)}
                  />
-                  <input
+                  {!isLogin && <input
                 type="text"
                 id="password-check"
                 name="password-check"
                 placeholder="confirm password"
                 onChange={(e) =>setConfirmPassword(e.target.value)}
-                 />
+                 />}
                  
                  {error && <p> *makes sure your password matches</p>}
-                 <button onClick={handleSubmit}>GO!</button>
+                 <button className="standard-button" onClick={handleSubmit}>GO!</button>
             </div>
+            <div className="auth-options">
+                    <button
+                        onClick={() => setIsLogin(false)}
+                        style={{ backgroundColor: !isLogin ? '#151a1f' : '#070a0d'}}
+                    >Sign up</button>
+                    <button
+                        onClick={() => setIsLogin(true)}
+                        style={{ backgroundColor: isLogin ? '#151a1f' : '#070a0d'}}
+                    >Login</button>
+                </div>
         </div>
 
         </div>
