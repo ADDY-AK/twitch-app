@@ -5,6 +5,7 @@ const bcrypt =require('bcrypt');
 const {v1: uuidv1} = require('uuid');
 const {connect} = require('getstream');
 const cors = require('cors');
+const StreamChat = require('stream-chat').StreamChat
 app.use(cors());
 app.use(express.json());
 
@@ -27,6 +28,34 @@ app.post('/signup', async(req,res) => {
     catch(error){
         console.log(error);
         res.status(500).json({message: error});
+    }
+})
+
+//login
+app.post('/login', async(req,res) => {
+    try{
+        const {username, password} = req.body;
+        const client = connect(API_KEY, API_SECRET);
+        const chatClient = StreamChat.getInstance(API_KEY, API_SECRET);
+        const {users} =await chatClient.queryUsers({name:username});
+        if(!users.length) return res.json(400).json({message: 'user does not exist'});
+        const success = await bcrypt.compare(password, users[0].hashedPassword);
+
+        const token = client.createUserToken(users[0].id);
+        const confirmedName = users[0].name;
+        const userId = users[0].id;
+
+        if(success){
+            res.json(200).json({token, username: confirmedName, userId})
+        }else{
+            res.status(500).res.json({message: 'Login Failed'});
+        }
+
+
+    }catch(error){
+        console.log(error);
+        res.status(500).json({message: error})
+
     }
 })
 
