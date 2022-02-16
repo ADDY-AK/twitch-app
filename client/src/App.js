@@ -1,68 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import { StreamChat } from 'stream-chat';
+import React, { useEffect, useState } from 'react'
+import { useCookies } from 'react-cookie'
+import { StreamChat } from 'stream-chat'
 import {
-  Chat,
-  Channel,
-} from 'stream-chat-react';
-import MessagingContainer from './components/MessagingContainer';
-import Auth from './components/Auth';
-import Video from './components/Video';
-import '@stream-io/stream-chat-css/dist/css/index.css';
-import {useCookies } from 'react-cookie';
+    Chat,
+    Channel,
+} from 'stream-chat-react'
+import Auth from './components/Auth'
+import MessagingContainer from './components/MessagingContainer'
+import Video from './components/Video'
+import '@stream-io/stream-chat-css/dist/css/index.css'
+import {customStyles} from "./styles/customStyles"
 
 
-const client = StreamChat.getInstance('4vdv4j6mdtmt');
+const client = StreamChat.getInstance('557zr54fng2x')
 
 const App = () => {
-  const [cookies, setCookie, removeCookie] = useCookies(['user']);
+    const [cookies, setCookie, removeCookie] = useCookies(['user'])
+    const [channel, setChannel] = useState(null)
+    const [users, setUsers] = useState(null)
 
-  const[channel, setChannel] = useState(null);
-  const [user, setUsers] =useState(null);
+    const authToken = cookies.AuthToken
 
-const authToken = cookies.AuthToken;
+    console.log(authToken)
 
-  // useEffect(() => {
+    useEffect( async () => {
+        if (authToken) {
+            const { users} = await client.queryUsers({ role: 'user'})
+            setUsers(users)
+        }
+    }, [])
 
-  // }, []);
-
-  const setupClient = async () => {
-    try {
-      await client.connectUser(
-        {
-          id: cookies.UserId,
-          name: cookies.Name,
-          hashedPassword: cookies.HashedPassword
-        },
-        authToken,
-      );
-
-      const channel = await client.channel('gaming', 'gaming-demo', {
-        
-        name: 'Gaming Demo',
-        // option to add custom fields
-      });
-      setChannel(channel);
-
-    } catch (err) {
-      console.log(err);
+    const setupClient = async () => {
+        try {
+            await client.connectUser(
+                {
+                    id: cookies.UserId,
+                    name: cookies.Name,
+                    hashedPassword: cookies.HashedPassword,
+                },
+                authToken
+            )
+            const channel = await client.channel('gaming', 'gaming-demo', {
+                name: 'Gaming Demo',
+            })
+            setChannel(channel)
+        } catch (err) {
+            console.log(err)
+        }
     }
-  };
 
-  if(authToken) setupClient();
+    if (authToken) setupClient()
 
+    return (
+        <div>
+            {!authToken && <Auth/>}
+            {authToken && <Chat client={client} customStyles={customStyles}>
+                <Channel channel={channel}>
+                    <Video/>
+                    <MessagingContainer users={users}/>
+                </Channel>
+            </Chat>}
+        </div>
+    )
+}
 
-  return (
-    <>
-    {!authToken && <Auth/>}
-    {authToken && <Chat client={client}>
-    
-      <Channel channel={channel}>
-      <Video />
-      <MessagingContainer />
-      </Channel>
-    </Chat>}
-    </>
-  );
-};
-
-export default App;
+export default App
